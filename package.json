@@ -1,0 +1,27 @@
+{
+  "name": "kindur-exercise-one",
+  "version": "1.0.0",
+  "description": "api that turns a message into a hash and vice versa",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/greedychipmunk/vigilant-happiness.git"
+  },
+  "keywords": [
+    "express",
+    "node"
+  ],
+  "author": "Dawson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/greedychipmunk/vigilant-happiness/issues"
+  },
+  "homepage": "https://github.com/greedychipmunk/vigilant-happiness#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3"
+  }
+}
