@@ -3,13 +3,13 @@ const bodyParser = require('body-parser')
 const app = express()
 
 const crypto = require('crypto');
-const hash = crypto.createHash('sha256');
 
 app.use(bodyParser.json())
 
 // const mongoUrl = 'mongodb://hashdbuser:0p3n1tn0w@ds215502.mlab.com:15502/hashdb'
 
 function messageToHash(message) {
+  const hash = crypto.createHash('sha256');
   hash.update(message)
   return hash.digest('hex')
 }
