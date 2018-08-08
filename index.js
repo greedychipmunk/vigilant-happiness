@@ -1,12 +1,34 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
-
 const crypto = require('crypto');
+const { Client } = require('pg');
 
 app.use(bodyParser.json())
 
-// const mongoUrl = 'mongodb://hashdbuser:0p3n1tn0w@ds215502.mlab.com:15502/hashdb'
+/** 
+ * create table hashdb (
+ * hash varchar(128) not null,
+ * message varchar(255) not null)
+ * ;
+*/
+
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
+
+client.connect();
+
+function getMessageWithHash(hash) {
+  client.query(`SELECT message FROM hashdb WHERE hash='${hash}';`, (err, res) => {
+    if (err) throw err;
+    for (let row of res.rows) {
+      console.log(JSON.stringify(row));
+    }
+    client.end();
+  });
+}
 
 function messageToHash(message) {
   const hash = crypto.createHash('sha256');
@@ -14,19 +36,29 @@ function messageToHash(message) {
   return hash.digest('hex')
 }
 
-function addHashToDB(hashedMessage, message) {
+function addToDB(hashedMessage, message) {
+  client.query(`INSERT INTO hashdb VALUES ('${hashedMessage}', '${message}');`, (err, res) => {
+    if (err) throw err;
+    for (let row of res.rows) {
+      console.log(JSON.stringify(row));
+    }
+    client.end();
+  });
 }
 
 app.post('/messages', (req, res) => {
   const { message = '' } = req.body
   if(message === '') res.status(404).send('Message not found. Try \'{ "message": "your message here" }\'')
   const hashedMessage = messageToHash(message)
-  // addHashToDB(hashedMessage, message)
+  addToDB(hashedMessage, message)
   res.status(200).send(hashedMessage)
 })
 
 app.get('/messages/:hash', (req, res) => {
-  res.status(200).send('Hello Hash!')
+  const { hash = '' } = req.params
+  if(hash === '') res.status(404).send('Hash not found.')
+  const message = getMessageWithHash(hash)
+  res.status(200).send(message)
 })
 
 app.listen(3000, () => console.log('text-to-hash app listening on port 3000!'))
