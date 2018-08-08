@@ -21,12 +21,10 @@ const client = new Client({
 client.connect();
 
 function getMessageWithHash(hash) {
-  client.query(`SELECT message FROM hashdb WHERE hash='${hash}';`, (err, res) => {
-    if (err) throw err;
-    for (let row of res.rows) {
-      console.log(JSON.stringify(row));
-    }
+  return client.query(`SELECT message FROM hashdb WHERE hash='${hash}';`, (err, res) => {
+    if (err) return err;
     client.end();
+    return res
   });
 }
 
@@ -37,12 +35,10 @@ function messageToHash(message) {
 }
 
 function addToDB(hashedMessage, message) {
-  client.query(`INSERT INTO hashdb VALUES ('${hashedMessage}', '${message}');`, (err, res) => {
-    if (err) throw err;
-    for (let row of res.rows) {
-      console.log(JSON.stringify(row));
-    }
+  return client.query(`INSERT INTO hashdb VALUES ('${hashedMessage}', '${message}');`, (err, res) => {
+    if (err) return err;
     client.end();
+    return res
   });
 }
 
@@ -50,15 +46,24 @@ app.post('/messages', (req, res) => {
   const { message = '' } = req.body
   if(message === '') res.status(404).send('Message not found. Try \'{ "message": "your message here" }\'')
   const hashedMessage = messageToHash(message)
-  addToDB(hashedMessage, message)
-  res.status(200).send(hashedMessage)
+  try {
+    const status = addToDB(hashedMessage, message)
+    console.log('addToDB status', status)
+    res.status(200).send(hashedMessage)
+  } catch(err) {
+    res.status(404).send(err)
+  }
 })
 
 app.get('/messages/:hash', (req, res) => {
   const { hash = '' } = req.params
   if(hash === '') res.status(404).send('Hash not found.')
-  const message = getMessageWithHash(hash)
-  res.status(200).send(message)
+  try {
+    const message = getMessageWithHash(hash)
+    res.status(200).send(message)
+  } catch(err) {
+    res.status(404).send(err)
+  }
 })
 
 app.listen(3000, () => console.log('text-to-hash app listening on port 3000!'))
